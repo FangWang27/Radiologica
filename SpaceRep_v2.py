@@ -53,7 +53,7 @@ class Question:
             cursor.execute(
                 f"""
                 INSERT INTO questions
-                    (qid)
+                    (`qid`)
                     VALUES({qid});
                 """
             )
@@ -103,7 +103,7 @@ class User:
             cursor.execute(
                 f"""
                 INSERT INTO users
-                    (uid)
+                    (`uid`)
                     VALUES({uid});
                 """
             )
@@ -122,8 +122,8 @@ class User:
             cursor.execute(
                 f"""
             UPDATE users
-                SET uid = {uid}
-                WHERE uid = {self.uid};
+                SET `uid` = {uid}
+                WHERE `uid` = {self.uid};
                 """
             )
             conn.commit()
@@ -207,7 +207,7 @@ class User:
                 f"""
                 SELECT COUNT(*) AS repetition
                 FROM interactions WHERE
-                uid = {self.uid} AND qid = {qid};
+                `uid` = {self.uid} AND `qid` = {qid};
                 """
             )
             rep = cursor.fetchall()
@@ -250,7 +250,7 @@ class User:
             cursor.execute(
                 f"""
                       SELECT is_correct AS performance FROM interactions  
-                      WHERE uid = {self.uid} AND qid = {qid} 
+                      WHERE `uid` = {self.uid} AND `qid` = {qid} 
                       ORDER BY interact_time DESC LIMIT {n};
                       """
             )
@@ -321,7 +321,7 @@ class Learner(User):
             with conn.cursor(buffered=True) as cursor:
                 cursor.execute(
                     f"""
-                            SELECT interact_time AS last_seen FROM interactions WHERE uid = {self.uid} AND qid = {question.qid} 
+                            SELECT interact_time AS last_seen FROM interactions WHERE `uid` = {self.uid} AND `qid` = {question.qid} 
                             ORDER BY interact_time DESC LIMIT 1
                             """
                 )
@@ -341,7 +341,7 @@ def write_log(interactions: list[dict]) -> None:
     
       A list of dictionaries where each dictionary contains the following elements:
         `q`: 
-          int, qid of the question that being answere by the user
+          int, `qid` of the question that being answere by the user
         `u`: 
           int, uid of the user who answered the question
         `corret`: 
@@ -373,7 +373,7 @@ def write_log(interactions: list[dict]) -> None:
         cursor.executemany(
             """
             INSERT INTO interactions
-                (uid, qid, relevance, is_correct, difficulty, interact_time)
+                (`uid`, `qid`, relevance, is_correct, difficulty, interact_time)
                 VALUES(%s, %s, %s, %s, %s, %s);
             """,
             records,
@@ -471,9 +471,9 @@ def simulate(lst_q:list[Question], lst_u:list[User], max_day: int, start_day: da
     with conn.cursor() as cursor:
         cursor.executemany(
             f"""
-                    INSERT INTO question_user(uid, qid,repetition,is_matured, ease_factor,review_interval, next_study_day)
+                    INSERT INTO question_user(`uid`, `qid`,repetition,is_matured, ease_factor,review_interval, next_study_day)
                     SELECT %s,%s,0,false,{INI_EASE_FACTOR},{INI_REVIEW_INTERVAL}, %s FROM DUAL
-                    WHERE NOT EXISTS( SELECT * FROM question_user WHERE uid = %s AND qid = %s LIMIT 1);              
+                    WHERE NOT EXISTS( SELECT * FROM question_user WHERE uid = %s AND `qid` = %s LIMIT 1);              
                           """,
             q_u_start_data,
         )
@@ -486,8 +486,8 @@ def simulate(lst_q:list[Question], lst_u:list[User], max_day: int, start_day: da
             cursor.execute(
                 f"""
                 SELECT
-                    uid,
-                    qid,
+                    `uid`,
+                    `qid`,
                     repetition,
                     review_interval,
                     ease_factor
@@ -555,8 +555,8 @@ def simulate(lst_q:list[Question], lst_u:list[User], max_day: int, start_day: da
                     review_interval = %s,
                     next_study_day = %s
                 WHERE
-                    uid = %s
-                    AND qid = %s;
+                    `uid` = %s
+                    AND `qid` = %s;
                             """,
                 lst_q_u_updates,
             )
@@ -568,14 +568,14 @@ def simulate(lst_q:list[Question], lst_u:list[User], max_day: int, start_day: da
                 SET
                     is_matured = 1
                 WHERE
-                    uid = %s
-                    AND qid = %s
+                    `uid` = %s
+                    AND `qid` = %s
               """,
                 lst_maturity_updates,
             )
             cursor.executemany(
                 """
-                            INSERT INTO interactions(uid,qid,relevance,is_correct,difficulty,interact_time)
+                            INSERT INTO interactions(`uid`,`qid`,relevance,is_correct,difficulty,interact_time)
                                 VALUES(%s, %s,%s,%s,%s,%s)
                             """,
                 lst_interactions_updates,
@@ -599,7 +599,7 @@ def simulate(lst_q:list[Question], lst_u:list[User], max_day: int, start_day: da
                     """
                   UPDATE question_user
                   SET is_matured = 1
-                  WHERE uid = %s AND qid = %s
+                  WHERE `uid` = %s AND `qid` = %s
                   """,
                     final_maturity_updates,
                 )
